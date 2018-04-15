@@ -1,0 +1,124 @@
+/*
+ * init.c
+ *
+ *  Created on: 07.03.2018
+ *      Author: alex
+ */
+#include "stm32f4xx.h"
+#include "init.h"
+
+#define SPI_CR1_BR256 SPI_CR1_BR_2 | SPI_CR1_BR_1 | SPI_CR1_BR_0
+
+void initGPIO() {
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN | RCC_AHB1ENR_GPIOAEN
+			| RCC_AHB1ENR_GPIOBEN;
+
+	GPIOC->MODER = 0x00015555; //8:0 to Output
+	GPIOC->BSRRL = 0x1;
+
+	GPIOA->MODER = 0x000A80A2; // 0 to AF
+	GPIOA->AFR[0] = 0x10007701; //0 to PWM
+	GPIOA->AFR[1] = 0x00000011;
+
+	GPIOB->MODER = 0x84000000;
+	GPIOB->AFR[1] = 0x55500000;
+
+}
+
+void initEXTI() {
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN | RCC_APB2ENR_EXTIEN;
+
+	SYSCFG->EXTICR[3] |= SYSCFG_EXTICR4_EXTI13_PC;
+
+	EXTI->FTSR |= EXTI_FTSR_TR13;
+	EXTI->IMR |= EXTI_IMR_MR13;
+	NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+}
+
+void initADC() {
+
+	RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+	ADC->CCR |= ADC_CCR_ADCPRE_0;
+
+	ADC1->SMPR2 |= ADC_SMPR2_SMP0_0; // Take 15 cycles
+	//	ADC1->CR2 |= ADC_CR2_CONT;
+	ADC1->CR2 |= ADC_CR2_ADON;
+
+}
+
+void initTim2() {
+	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+
+	TIM2->PSC = 0;
+	TIM2->ARR = 1000;
+	TIM2->CNT = 0x00;
+	TIM2->CCR1 = 500;
+
+	TIM2->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1PE;
+	TIM2->CCER |= TIM_CCER_CC1E;
+
+	TIM2->EGR |= TIM_EGR_UG;
+
+	TIM2->CR1 |= TIM_CR1_CEN;
+
+}
+
+void initTim3() {
+	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+}
+
+void initTim9() {
+	RCC->APB2ENR |= RCC_APB2ENR_TIM9EN;
+}
+
+void initTim1() {
+
+	RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+
+	TIM1->ARR = 500;
+	TIM1->CCR1 = 250;
+
+//	uint16_t cr1 = TIM1->CR1;
+//	cr1 |= TIM_CR1_ARPE;
+//	cr1 |= TIM_CR1_CMS_0 | TIM_CR1_CMS_1;
+//	TIM1->CR1 = cr1;
+
+	uint16_t ccmr1 = TIM1->CCMR1;
+	ccmr1 |= TIM_CCMR1_OC1PE;
+	ccmr1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
+	TIM1->CCMR1 = ccmr1;
+
+	uint16_t ccer = TIM1->CCER;
+	ccer |= TIM_CCER_CC1E;
+	ccer |= TIM_CCER_CC1NE;
+	TIM1->CCER = ccer;
+
+	uint16_t bdtr = TIM1->BDTR;
+	bdtr |= TIM_BDTR_MOE;
+	bdtr |= TIM_BDTR_AOE;
+	bdtr &= ~TIM_BDTR_DTG;
+	bdtr |= 0x1D; //DTG
+	TIM1->BDTR = bdtr;
+
+	TIM1->EGR |= TIM_EGR_UG;
+	TIM1->CR1 |= TIM_CR1_CEN;
+
+//	RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+//
+//	TIM1->PSC = 1;
+//	TIM1->ARR = 500;
+//	TIM1->CNT = 0x00;
+//	TIM1->CCR1 = 200;
+//
+//	TIM1->CR1 |= TIM_CR1_CMS;
+//
+//	TIM1->CCMR1 |= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE;
+//
+//	TIM1->BDTR |= TIM_BDTR_MOE;
+//	TIM1->CCER |= TIM_CCER_CC1E | TIM_CCER_CC1NE;
+//
+//	TIM1->EGR |= TIM_EGR_UG;
+//
+//	TIM1->CR1 |= TIM_CR1_CEN;
+}
