@@ -9,19 +9,33 @@
 
 #define SPI_CR1_BR256 SPI_CR1_BR_2 | SPI_CR1_BR_1 | SPI_CR1_BR_0
 
+#define ALT(x) (0x2 << 2*x)
+#define AFRL_TIM1(x) (1 << 4*x)
+#define AFRH_TIM1(x) (1 << 4*(x-8))
+
 void initGPIO() {
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN | RCC_AHB1ENR_GPIOAEN
-			| RCC_AHB1ENR_GPIOBEN;
+	/*
+	 RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN | RCC_AHB1ENR_GPIOAEN
+	 | RCC_AHB1ENR_GPIOBEN;
 
-	GPIOC->MODER = 0x00015555; //8:0 to Output
-	GPIOC->BSRRL = 0x1;
+	 GPIOC->MODER = 0x00015555; //8:0 to Output
+	 GPIOC->BSRRL = 0x1;
 
-	GPIOA->MODER = 0x000A80A2; // 0 to AF
-	GPIOA->AFR[0] = 0x10007701; //0 to PWM
-	GPIOA->AFR[1] = 0x00000011;
+	 GPIOA->MODER |= 0x00280000; // 0 to AF
+	 GPIOA->AFR[0] = 0x00000001; //0 to PWM
+	 GPIOA->AFR[1] = 0x00000111;
 
-	GPIOB->MODER = 0x84000000;
-	GPIOB->AFR[1] = 0x55500000;
+	 GPIOB->MODER |= 0x08000000;
+	 GPIOB->AFR[1] = 0x00100000;
+	 GPIOB->AFR[0] = 0x00000000;
+	 */
+
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN;
+	GPIOA->AFR[1] |= AFRH_TIM1(8) | AFRH_TIM1(9);
+	GPIOA->MODER |= ALT(8) | ALT(9);
+
+	GPIOB->AFR[1] |= AFRH_TIM1(14) | AFRH_TIM1(13);
+	GPIOB->MODER |= ALT(14) | ALT(13);
 
 }
 
@@ -77,52 +91,69 @@ void initTim9() {
 }
 
 void initTim1() {
+	/*
+	 RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+
+	 TIM1->ARR = 1000;
+	 TIM1->CCR1 = 250;
+	 TIM1->CCR3 = 250;
+
+	 uint16_t cr1 = TIM1->CR1;
+	 cr1 |= TIM_CR1_ARPE;
+	 //	cr1 |= TIM_CR1_CMS_0 | TIM_CR1_CMS_1;
+	 TIM1->CR1 = cr1;
+
+	 uint16_t ccmr1 = TIM1->CCMR1;
+	 ccmr1 |= TIM_CCMR1_OC1PE;
+	 ccmr1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
+	 ccmr1 |= TIM_CCMR1_OC2PE;
+	 ccmr1 |= TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2;
+	 TIM1->CCMR1 = ccmr1;
+
+	 uint16_t ccer = TIM1->CCER;
+	 ccer |= TIM_CCER_CC1E;
+	 ccer |= TIM_CCER_CC1NE;
+	 ccer |= TIM_CCER_CC2E;
+	 ccer |= TIM_CCER_CC2NE;
+	 TIM1->CCER = ccer;
+
+	 uint16_t bdtr = TIM1->BDTR;
+	 bdtr |= TIM_BDTR_MOE;
+	 //	bdtr |= TIM_BDTR_AOE;
+	 //	bdtr &= ~TIM_BDTR_DTG;
+	 //	bdtr |= 0x1D; //DTG
+	 TIM1->BDTR = bdtr;
+
+	 TIM1->EGR |= TIM_EGR_UG;
+	 TIM1->CR1 |= TIM_CR1_CEN;
+	 */
 
 	RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+	TIM1->ARR = 1000;
+	TIM1->CCR2 = 300;
+	TIM1->CCR1 = 700;
 
-	TIM1->ARR = 500;
-	TIM1->CCR1 = 250;
-
-//	uint16_t cr1 = TIM1->CR1;
-//	cr1 |= TIM_CR1_ARPE;
-//	cr1 |= TIM_CR1_CMS_0 | TIM_CR1_CMS_1;
-//	TIM1->CR1 = cr1;
+	TIM1->CR1 |= TIM_CR1_ARPE;
 
 	uint16_t ccmr1 = TIM1->CCMR1;
-	ccmr1 |= TIM_CCMR1_OC1PE;
+	ccmr1 |= TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2;
 	ccmr1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
+	ccmr1 |= TIM_CCMR1_OC1PE | TIM_CCMR1_OC2PE;
 	TIM1->CCMR1 = ccmr1;
 
 	uint16_t ccer = TIM1->CCER;
-	ccer |= TIM_CCER_CC1E;
-	ccer |= TIM_CCER_CC1NE;
+	ccer |= TIM_CCER_CC1E | TIM_CCER_CC1NE;
+	ccer |= TIM_CCER_CC2E | TIM_CCER_CC2NE;
 	TIM1->CCER = ccer;
 
-	uint16_t bdtr = TIM1->BDTR;
+	uint16_t bdtr = 0;
 	bdtr |= TIM_BDTR_MOE;
 	bdtr |= TIM_BDTR_AOE;
 	bdtr &= ~TIM_BDTR_DTG;
-	bdtr |= 0x1D; //DTG
+	bdtr |= (0x1D & TIM_BDTR_DTG);
 	TIM1->BDTR = bdtr;
 
 	TIM1->EGR |= TIM_EGR_UG;
 	TIM1->CR1 |= TIM_CR1_CEN;
 
-//	RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
-//
-//	TIM1->PSC = 1;
-//	TIM1->ARR = 500;
-//	TIM1->CNT = 0x00;
-//	TIM1->CCR1 = 200;
-//
-//	TIM1->CR1 |= TIM_CR1_CMS;
-//
-//	TIM1->CCMR1 |= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE;
-//
-//	TIM1->BDTR |= TIM_BDTR_MOE;
-//	TIM1->CCER |= TIM_CCER_CC1E | TIM_CCER_CC1NE;
-//
-//	TIM1->EGR |= TIM_EGR_UG;
-//
-//	TIM1->CR1 |= TIM_CR1_CEN;
 }

@@ -25,20 +25,20 @@ int main(void) {
 
 	initGPIO();
 	initTim1();
-	initTim2();
-	initTim3();
-	serial_init(64, 32);
+//	initTim2();
+//	initTim3();
+//	serial_init(64, 32);
 
-	Delay del = del_init(TIM3);
-	del_changeTimeBaseMs(&del, 20000);
+//	Delay del = del_init(TIM3);
+//	del_changeTimeBaseMs(&del, 20000);
 
 	for (;;) {
-		TIM1_CH1_RUN
-		;
-		delay_ms(&del, 5000);
-		TIM1_CH1_IDLE
-		;
-		delay_ms(&del, 5000);
+//		TIM1_CH1_RUN
+//		;
+//		delay_ms(&del, 5000);
+//		TIM1_CH1_IDLE
+//		;
+//		delay_ms(&del, 5000);
 
 	}
 }
@@ -47,11 +47,11 @@ void TIM2_IRQHandler() {
 	static uint16_t ccr = 50;
 
 	if (TIM2->SR & TIM_SR_UIF) {
-		ccr++;
-		if (ccr >= 500) {
+//		ccr++;
+		if (ccr >= 1000) {
 			ccr = 0;
 		}
-		TIM1->CCR1 = ccr;
+//		TIM1->CCR1 = ccr;
 		TIM2->SR &= ~TIM_SR_UIF;
 	} else if (TIM2->SR & TIM_SR_CC1IF) {
 

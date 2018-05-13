@@ -26,8 +26,8 @@ void del_changeTimeBase(Delay *del, u16 timebase) {
 	del->Timer->PSC = timebase;
 }
 
-int del_changeTimeBaseMs(Delay *del, u16 maxTimeMillis) {
-	uint32_t largeNum = maxTimeMillis * (SystemCoreClock / 1000);
+int del_changeTimeBaseMs(Delay *del, u16 timeMillis) {
+	uint32_t largeNum = timeMillis * (SystemCoreClock / 1000);
 	u32 psc = largeNum >> 16;
 	psc++;
 	if (psc > 0xFFFF) {
@@ -39,12 +39,10 @@ int del_changeTimeBaseMs(Delay *del, u16 maxTimeMillis) {
 	return 0;
 }
 
-int del_changeTimeBaseUs(Delay *del, u16 maxTimeMicros) {
-	uint64_t largeNum = ((uint64_t) maxTimeMicros) * SystemCoreClock;
-	largeNum /= 1000000; //convert from us
+int del_changeTimeBaseUs(Delay *del, u16 timeMicros) {
+	uint32_t largeNum = timeMicros * (SystemCoreClock / 1000000);
 	u32 psc = largeNum >> 16;
-	//make sure we have a timing long enough:
-	psc++;
+
 	if (psc > 0xFFFF) {
 		del->Timer->PSC = 0xFFFF;
 		return -1;

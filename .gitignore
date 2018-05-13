@@ -1,3 +1,5 @@
 Debug/*
 Release/*
 StdPeriph_Driver/*
+/Debug/
+/Release/
